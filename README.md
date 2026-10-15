@@ -132,7 +132,7 @@ the daemon entry point keeps its name.
 ## Developer tools
 
 `tools/rear.sh` (adb): `wake`, `sleep`, `goto <page>`, `dump [file.png]` (last pushed frame),
-`tap X Y`, `swipe X1 Y1 X2 Y2`, `log`, `off`.
+`tap X Y`, `swipe X1 Y1 X2 Y2`, `set KEY VALUE`, `log`, `off`.
 
 The debug broadcasts it uses are protected by `android.permission.DUMP`, which only the shell holds.
 
