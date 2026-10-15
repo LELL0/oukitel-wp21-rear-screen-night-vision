@@ -64,6 +64,8 @@ class DebugReceiver : BroadcastReceiver() {
             "com.lello.wp21rear.SET" -> {
                 // am broadcast ... -a com.lello.wp21rear.SET --es key K (--es value V | --ez bool B | --ei int N)
                 val key = intent.getStringExtra("key") ?: return
+                // privacy settings are changed only from the app itself
+                if (key == Prefs.K_NOTIF_PRIVACY) { resultData = "refused"; return }
                 val e = Prefs(ctx).sp.edit()
                 when {
                     intent.hasExtra("value") -> e.putString(key, intent.getStringExtra("value"))
