@@ -1,4 +1,13 @@
-# WP21 Rear Screen
+# Oukitel WP21 Rear Screen & Night Vision
+
+Two root apps for the **Oukitel WP21**:
+
+- **WP21 Rear Screen**: turns the small round rear display into a touch smartwatch-style screen.
+- **WP21 Night Vision**: night camera viewfinder with control of the phone's infrared illuminator.
+
+Download both APKs from the [Releases](../../releases) page.
+
+## WP21 Rear Screen
 
 Turns the small round rear screen of the **Oukitel WP21** into a touch device: watch faces, music,
 a selfie viewfinder for the main cameras, notifications, calls, quick toggles, tools, a photo frame
@@ -56,9 +65,20 @@ calibration (display rotation/mirror, colour byte order, touch orientation by ta
 diagnostics (daemon status, fps, HAL return codes, raw touch viewer, brightness sweep, frame dump,
 log export), permission setup (normal requests or one tap with root), start at boot.
 
+## WP21 Night Vision
+
+- Live viewfinder from the infrared-sensitive **night camera** (HAL camera 2), or any other camera.
+- **IR illuminator on/off** (needs root) and **Auto IR** from the light sensor; the LEDs are switched off
+  whenever you leave the app, even if it crashes.
+- Modes: **Natural**, **Night green**, **Mono**, **Heat map** (false colour of brightness, not real
+  thermal), **Amber**; **gain** (1–8×) and **exposure** sliders; pinch to zoom; HUD with lux and fps.
+- Photos are saved full resolution **as you see them** to `Pictures/NightVision`; video is recorded
+  unfiltered to `Movies/NightVision`.
+
 ## Install
 
-1. Install the APK: `adb install -r -g WP21RearScreen.apk` (or open it on the phone).
+1. Install the APKs: `adb install -r -g WP21RearScreen.apk` and `adb install -r -g WP21NightVision.apk`
+   (or open them on the phone).
 2. Open **WP21 Rear Screen**. Magisk asks for root: **Grant**.
 3. Tap **Grant everything with root** (or grant the permissions one by one and enable notification
    access).
@@ -85,7 +105,7 @@ Requirements: JDK 17+ (21 works), Android SDK with platform 35 and build-tools, 
 `local.properties` with `sdk.dir`.
 
 ```
-./gradlew assembleRelease          # app/build/outputs/apk/release/app-release.apk
+./gradlew assembleRelease          # app/…/app-release.apk and nightvision/…/nightvision-release.apk
 ./gradlew assembleDebug            # debug build, same signing key
 adb install -r -g app/build/outputs/apk/release/app-release.apk
 ```

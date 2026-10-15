@@ -32,4 +32,10 @@ object Rear {
     @Volatile var touchCapture: ((Int, Int, Int) -> Unit)? = null
 
     val running: Boolean get() = service != null
+
+    /** Minimal setup for code that runs without the service (face previews in the app). */
+    fun initBasics(ctx: Context) {
+        if (!::app.isInitialized) app = ctx.applicationContext
+        if (!::prefs.isInitialized) prefs = Prefs(app)
+    }
 }

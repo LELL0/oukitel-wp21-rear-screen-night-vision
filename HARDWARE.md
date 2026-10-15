@@ -115,6 +115,24 @@ refuses when the service is started from the background. The app asks the root d
 `am start-foreground-service`; a root caller is exempt from that restriction, so the service can add the
 camera (and microphone) type at any time, including on the lock screen.
 
+## Infrared illuminator (night vision)
+
+Driver `irled-gpio` (`/vendor_dlkm/lib/modules/irled-gpio.ko`, author `yft-drv`), device-tree node
+`irled_gpio` with pin states `ir1..ir4` × `high` / `low` / `pwm`, PWM through `mtk-pwm`.
+
+| File | Writes | Effect |
+|---|---|---|
+| `/sys/bus/platform/drivers/irled-gpio/yft_irled_ctl` | `on` / `off` | IR on: pin 0 high + PWM enabled (26 MHz clock, duty ≈ 11395/39385); reads back `on`/`off` |
+| `/sys/bus/platform/drivers/irled-gpio/irmotor` | `gpio <pin 0..3> <0\|1>` | sets one pin (despite the name, not an IR-cut motor command in this build) |
+| same | `pwm <pin> <freq> <0\|1>` | PWM on one pin |
+
+Found by reading the module's strings and disassembling `store_irmotor_value` (NDK `llvm-objdump`):
+it compares the input with `gpio` (then `sscanf "%d %d"`) or `pwm` (then `"%d %d %d"`); pin numbers
+must be below 4. Vendor init makes the files world-writable, but SELinux (`sysfs_yft_file`) still blocks
+apps, so the night-vision app writes them from a root shell that switches the LEDs off when the app dies.
+
+The night camera is HAL camera **2** (20 MP, back). There is no separate IR-cut control exposed.
+
 ## Rendering approach
 
 Two options were considered:

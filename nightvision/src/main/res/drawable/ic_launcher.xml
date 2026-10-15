@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Night vision icon: green eye on black -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#0B1A0F" android:pathData="M54,4a50,50 0,1 1,0 100a50,50 0,1 1,0 -100z" />
+    <path android:fillColor="#00E676"
+        android:pathData="M54,34C36,34 22,46 16,54C22,62 36,74 54,74C72,74 86,62 92,54C86,46 72,34 54,34ZM54,66A12,12 0,1 1,54 42A12,12 0,1 1,54 66Z" />
+    <path android:fillColor="#00E676" android:pathData="M54,48a6,6 0,1 1,0 12a6,6 0,1 1,0 -12z" />
+</vector>

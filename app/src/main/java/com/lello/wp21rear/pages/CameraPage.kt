@@ -113,7 +113,20 @@ class CameraPage(ui: RearUi) : Page(ui) {
     }
 
     private fun startCamera() {
-        val f = ProcessCameraProvider.getInstance(Rear.app)
+        // Explicit config: before the first unlock CameraX cannot read its config from the manifest.
+        try {
+            ProcessCameraProvider.configureInstance(androidx.camera.camera2.Camera2Config.defaultConfig())
+        } catch (_: IllegalStateException) {
+            // already configured
+        }
+        val f = try {
+            ProcessCameraProvider.getInstance(Rear.app)
+        } catch (e: Exception) {
+            status = "Camera unavailable: ${e.message}"
+            RLog.e("camera provider", e)
+            invalidate()
+            return
+        }
         f.addListener({
             try {
                 val p = f.get()
