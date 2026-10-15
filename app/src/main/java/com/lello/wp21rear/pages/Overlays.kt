@@ -339,7 +339,6 @@ class NotifPopup(ui: RearUi, private val item: NotifRepo.Item) : Overlay(ui) {
 class NotifReader(ui: RearUi, private val item: NotifRepo.Item) : Overlay(ui) {
     override val id = "reader"
     override val from = From.CENTER
-    override val keepAwake = true
 
     private val tp = TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { textSize = 19f; color = Draw.WHITE }
     private var scroll = 0f
@@ -351,12 +350,20 @@ class NotifReader(ui: RearUi, private val item: NotifRepo.Item) : Overlay(ui) {
 
     private fun priv() = Rear.prefs.notifPrivacy && locked()
 
+    private var layoutPrivate = false
+
+    /** Rebuilt whenever the lock state changes, so locking the phone hides an open message. */
     private fun body(): StaticLayout {
-        layout?.let { return it }
-        val text = if (priv()) "Unlock the phone to read this notification." else item.bigText.ifEmpty { item.text }
+        val p = priv()
+        layout?.let { if (layoutPrivate == p) return it }
+        layoutPrivate = p
+        val text = if (p) "Unlock the phone to read this notification." else item.bigText.ifEmpty { item.text }
         return StaticLayout.Builder.obtain(text, 0, text.length, tp, 250)
             .setAlignment(Layout.Alignment.ALIGN_NORMAL).setLineSpacing(3f, 1f).build().also { layout = it }
     }
+
+    // re-check the lock state regularly while open
+    override fun nextChangeIn(now: Long) = 1000L
 
     private fun contentBottom() = 120f + body().height + 110f
 
