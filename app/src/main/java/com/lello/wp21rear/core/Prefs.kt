@@ -2,14 +2,13 @@ package com.lello.wp21rear.core
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.preference.PreferenceManager
 
 /**
  * All settings, backed by the default SharedPreferences so the preference screens and the service
  * share them. Keys here must match res/xml/prefs.xml.
  */
 class Prefs(ctx: Context) {
-    val sp: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(ctx.applicationContext)
+    val sp: SharedPreferences = open(ctx.applicationContext)
 
     private fun int(key: String, def: Int) = try {
         sp.getInt(key, def)
@@ -17,7 +16,11 @@ class Prefs(ctx: Context) {
         sp.getString(key, null)?.toIntOrNull() ?: def
     }
 
-    private fun str(key: String, def: String) = sp.getString(key, def) ?: def
+    private fun str(key: String, def: String): String = try {
+        sp.getString(key, def) ?: def
+    } catch (_: ClassCastException) {
+        sp.all[key]?.toString() ?: def
+    }
     private fun bool(key: String, def: Boolean) = sp.getBoolean(key, def)
 
     // --- general
@@ -139,6 +142,21 @@ class Prefs(ctx: Context) {
         const val K_PHOTO_INTERVAL = "photo_interval"
         const val K_IDLE_MEDIA = "idle_media"
         const val K_BTN_ENABLED = "btn_enabled"
+
+        /**
+         * Settings live in device-protected storage so the rear screen can start right after boot,
+         * before the first unlock (direct boot). Old credential-protected settings are moved once.
+         */
+        fun open(app: Context): SharedPreferences {
+            val name = app.packageName + "_preferences"
+            val dp = app.createDeviceProtectedStorageContext()
+            try {
+                val um = app.getSystemService(android.os.UserManager::class.java)
+                if (um.isUserUnlocked) dp.moveSharedPreferencesFrom(app, name)
+            } catch (_: Exception) {
+            }
+            return dp.getSharedPreferences(name, Context.MODE_PRIVATE)
+        }
 
         const val DEFAULT_PAGES = "watch,music,camera,tools,compass,level,stopwatch,timer,battery,steps,photos,-idle"
         val ALL_PAGES = listOf(

@@ -35,10 +35,23 @@ class DebugReceiver : BroadcastReceiver() {
                     resultData = "no frame"
                     return
                 }
-                val f = File(ctx.getExternalFilesDir(null), "last_frame.png")
-                FileOutputStream(f).use { b.compress(Bitmap.CompressFormat.PNG, 100, it) }
-                resultData = f.absolutePath
-                RLog.i("frame dumped to $f")
+                // External storage is unavailable before the first unlock; fall back to device-protected storage.
+                val dirs = listOfNotNull(
+                    try { ctx.getExternalFilesDir(null) } catch (_: Exception) { null },
+                    ctx.createDeviceProtectedStorageContext().filesDir,
+                )
+                for (d in dirs) {
+                    try {
+                        val f = File(d, "last_frame.png")
+                        FileOutputStream(f).use { b.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                        resultData = f.absolutePath
+                        RLog.i("frame dumped to $f")
+                        return
+                    } catch (e: Exception) {
+                        RLog.w("frame dump to $d failed: $e")
+                    }
+                }
+                resultData = "dump failed"
             }
             "com.lello.wp21rear.WAKE" -> Rear.service?.wakePanel()
             "com.lello.wp21rear.SLEEP" -> Rear.service?.sleepPanel()
@@ -47,6 +60,19 @@ class DebugReceiver : BroadcastReceiver() {
                 val id = intent.getStringExtra("page") ?: return
                 Rear.service?.wakePanel()
                 if (Rear.running) Rear.ui.post { Rear.ui.goTo(id) }
+            }
+            "com.lello.wp21rear.SET" -> {
+                // am broadcast ... -a com.lello.wp21rear.SET --es key K (--es value V | --ez bool B | --ei int N)
+                val key = intent.getStringExtra("key") ?: return
+                val e = Prefs(ctx).sp.edit()
+                when {
+                    intent.hasExtra("value") -> e.putString(key, intent.getStringExtra("value"))
+                    intent.hasExtra("bool") -> e.putBoolean(key, intent.getBooleanExtra("bool", false))
+                    intent.hasExtra("int") -> e.putInt(key, intent.getIntExtra("int", 0))
+                    else -> e.remove(key)
+                }
+                e.apply()
+                resultData = "ok"
             }
             "com.lello.wp21rear.TOUCH" -> {
                 // synthetic touch for testing without the panel: x, y, action (0 down, 1 move, 2 up)
