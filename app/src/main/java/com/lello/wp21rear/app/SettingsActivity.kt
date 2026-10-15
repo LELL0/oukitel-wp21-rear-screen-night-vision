@@ -47,6 +47,7 @@ class SettingsActivity : AppCompatActivity() {
 
         override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
             preferenceManager.setStorageDeviceProtected()
+            Prefs.normalize(prefs().sp)
             setPreferencesFromResource(R.xml.prefs, rootKey)
             findPreference<Preference>("photo_folder_pick")?.setOnPreferenceClickListener {
                 pickFolder.launch(null); true

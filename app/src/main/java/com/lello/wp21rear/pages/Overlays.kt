@@ -26,7 +26,9 @@ class QuickTogglesOverlay(ui: RearUi) : Overlay(ui) {
     private val ids = listOf("flashlight", "wifi", "bluetooth", "dnd", "data", "rotation", "ringer")
     private var brightDrag = false
 
-    private fun pos(i: Int): Pair<Float, Float> = if (i < 4) Pair(81f + i * 66f, 128f) else Pair(114f + (i - 4) * 66f, 196f)
+    private fun pos(i: Int): Pair<Float, Float> = if (i < 4) Pair(81f + i * 66f, 96f) else Pair(114f + (i - 4) * 66f, 158f)
+
+    private fun chipX(i: Int) = T_L + i * (T_R - T_L) / (TIMEOUTS.size - 1)
 
     override fun onShow() {
         Rear.toggles.onChange = { invalidate() }
@@ -35,29 +37,40 @@ class QuickTogglesOverlay(ui: RearUi) : Overlay(ui) {
     override fun draw(c: Canvas, now: Long) {
         c.drawColor(0xF0101113.toInt())
         val time = java.text.SimpleDateFormat(if (Rear.prefs.use24h) "HH:mm" else "h:mm a", java.util.Locale.getDefault()).format(java.util.Date())
-        Draw.textC(c, time, Draw.C, 52f, 22f, Draw.WHITE, Draw.MED)
+        Draw.textC(c, time, Draw.C, 40f, 18f, Draw.WHITE, Draw.MED)
         for ((i, id) in ids.withIndex()) {
             val (x, y) = pos(i)
             val on = Rear.toggles.isOn(id)
-            Draw.circle(c, x, y, 27f, if (on) Draw.ACCENT else Draw.CARD)
+            Draw.circle(c, x, y, 26f, if (on) Draw.ACCENT else Draw.CARD)
             val icon = if (id == "ringer") Rear.toggles.ringerIcon() else Rear.toggles.all.first { it.id == id }.icon
-            Icons.draw(c, icon, x, y, 26f, if (on) 0xFF000000.toInt() else Draw.WHITE)
+            Icons.draw(c, icon, x, y, 25f, if (on) 0xFF000000.toInt() else Draw.WHITE)
         }
         // rear brightness 0..7
         val lvl = Rear.prefs.brightness
         Draw.line(c, B_L, B_Y, B_R, B_Y, 10f, Draw.CARD)
         Draw.line(c, B_L, B_Y, B_L + (B_R - B_L) * lvl / 7f, B_Y, 10f, Draw.AMBER)
         Draw.circle(c, B_L + (B_R - B_L) * lvl / 7f, B_Y, 12f, Draw.WHITE)
-        Draw.textC(c, "rear brightness $lvl", Draw.C, B_Y + 24f, 12f, Draw.DIM)
-        Icons.draw(c, "power", Draw.C, 318f, 24f, Draw.RED)
+        Draw.textC(c, "brightness $lvl" + if (Rear.prefs.autoBrightness) " (auto)" else "", Draw.C, B_Y + 22f, 12f, Draw.DIM)
+        // screen timeout
+        val cur = Rear.prefs.timeoutSec
+        for ((i, t) in TIMEOUTS.withIndex()) {
+            val x = chipX(i)
+            val sel = t == cur
+            Draw.roundRect(c, x - 22f, T_Y - 14f, x + 22f, T_Y + 14f, 14f, if (sel) Draw.ACCENT else Draw.CARD)
+            Draw.textC(c, label(t), x, T_Y, 13f, if (sel) 0xFF000000.toInt() else Draw.WHITE, Draw.MED)
+        }
+        Draw.textC(c, "turn off after", Draw.C, T_Y + 24f, 12f, Draw.DIM)
+        Icons.draw(c, "power", Draw.C, 326f, 22f, Draw.RED)
     }
+
+    private fun label(t: Int) = if (t < 60) "${t}s" else "${t / 60}m"
 
     override fun nextChangeIn(now: Long) = 2000L
 
     override fun onTap(x: Float, y: Float): Boolean {
         for ((i, id) in ids.withIndex()) {
             val (px, py) = pos(i)
-            if (hypot(x - px, y - py) < 32f) {
+            if (hypot(x - px, y - py) < 30f) {
                 // like the system quick settings, mobile data needs an unlocked phone
                 if (id == "data" && locked()) { ui.toast("Unlock the phone first"); return true }
                 Rear.toggles.toggle(id)
@@ -67,7 +80,14 @@ class QuickTogglesOverlay(ui: RearUi) : Overlay(ui) {
             }
         }
         if (y in B_Y - 22f..B_Y + 22f) { setBright(x); return true }
-        if (hypot(x - Draw.C, y - 318f) < 26f) {
+        if (y in T_Y - 20f..T_Y + 20f) {
+            val i = TIMEOUTS.indices.minByOrNull { abs(chipX(it) - x) } ?: return true
+            Rear.prefs.sp.edit().putString(com.lello.wp21rear.core.Prefs.K_TIMEOUT, TIMEOUTS[i].toString()).apply()
+            ui.host.userActivity()
+            invalidate()
+            return true
+        }
+        if (hypot(x - Draw.C, y - 326f) < 26f) {
             ui.closeOverlay(false)
             ui.host.requestSleep("toggles power button")
             return true
@@ -92,7 +112,11 @@ class QuickTogglesOverlay(ui: RearUi) : Overlay(ui) {
     companion object {
         const val B_L = 90f
         const val B_R = 270f
-        const val B_Y = 258f
+        const val B_Y = 214f
+        const val T_L = 72f
+        const val T_R = 288f
+        const val T_Y = 272f
+        val TIMEOUTS = listOf(5, 10, 15, 30, 60, 300)
     }
 }
 
@@ -213,6 +237,12 @@ class NotificationsOverlay(ui: RearUi) : Overlay(ui), NotifRepo.Listener {
         return true
     }
 
+    override fun onLongPress(x: Float, y: Float): Boolean {
+        val it = itemAt(y) ?: return false
+        ui.showOverlay(NotifReader(ui, it), false)
+        return true
+    }
+
     override fun claimDrag(x0: Float, y0: Float, dx: Float, dy: Float): Boolean {
         if (abs(dx) > abs(dy)) {
             val it = itemAt(y0) ?: return false
@@ -285,7 +315,8 @@ class NotifPopup(ui: RearUi, private val item: NotifRepo.Item) : Overlay(ui) {
     override fun nextChangeIn(now: Long) = 500L
 
     override fun onTap(x: Float, y: Float): Boolean {
-        ui.showOverlay(NotificationsOverlay(ui))
+        // read the whole notification right here
+        ui.showOverlay(NotifReader(ui, item), false)
         return true
     }
 
@@ -296,6 +327,106 @@ class NotifPopup(ui: RearUi, private val item: NotifRepo.Item) : Overlay(ui) {
             abs(dx) > 80f && item.clearable -> { NotifRepo.dismiss(item.key); ui.closeOverlay(false) }
             else -> ui.closeOverlay(false)
         }
+    }
+}
+
+// ======================================================================== full notification reader
+
+/**
+ * One notification, full text, scrollable, with its actions and a dismiss button.
+ * Opened by tapping the popup (or a card's "open" in the list). Locked + privacy → no content.
+ */
+class NotifReader(ui: RearUi, private val item: NotifRepo.Item) : Overlay(ui) {
+    override val id = "reader"
+    override val from = From.CENTER
+    override val keepAwake = true
+
+    private val tp = TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { textSize = 19f; color = Draw.WHITE }
+    private var scroll = 0f
+    private var scrollStart = 0f
+    private var layout: StaticLayout? = null
+    private val actionRects = ArrayList<Pair<NotifRepo.Action, android.graphics.RectF>>()
+    private var dismissRect = android.graphics.RectF()
+    private var closeRect = android.graphics.RectF()
+
+    private fun priv() = Rear.prefs.notifPrivacy && locked()
+
+    private fun body(): StaticLayout {
+        layout?.let { return it }
+        val text = if (priv()) "Unlock the phone to read this notification." else item.bigText.ifEmpty { item.text }
+        return StaticLayout.Builder.obtain(text, 0, text.length, tp, 250)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL).setLineSpacing(3f, 1f).build().also { layout = it }
+    }
+
+    private fun contentBottom() = 120f + body().height + 110f
+
+    override fun draw(c: Canvas, now: Long) {
+        c.drawColor(0xFF000000.toInt())
+        actionRects.clear()
+        c.save()
+        c.translate(0f, -scroll)
+        item.icon?.let { Draw.bitmapCircle(c, it, Draw.C, 40f, 16f) }
+        Draw.textC(c, item.appName, Draw.C, 66f, 13f, Draw.DIM, Draw.MED, 200f)
+        Draw.textC(c, if (priv()) (item.publicTitle ?: "New notification") else item.title, Draw.C, 92f, 20f, Draw.WHITE, Draw.MED, 250f)
+        c.save(); c.translate(55f, 112f); body().draw(c); c.restore()
+        var y = 120f + body().height + 34f
+        if (!priv() && item.actions.isNotEmpty()) {
+            for (a in item.actions) {
+                Draw.roundRect(c, 80f, y - 18f, 280f, y + 18f, 18f, 0xFF2D2F33.toInt())
+                Draw.textC(c, a.title, Draw.C, y, 15f, Draw.ACCENT, Draw.MED, 180f)
+                actionRects.add(a to android.graphics.RectF(80f, y - 18f, 280f, y + 18f))
+                y += 44f
+            }
+        }
+        if (item.clearable) {
+            Draw.roundRect(c, 110f, y - 18f, 250f, y + 18f, 18f, 0xFF3A1F1F.toInt())
+            Draw.textC(c, "Dismiss", Draw.C, y, 15f, Draw.RED, Draw.MED)
+            dismissRect = android.graphics.RectF(110f, y - 18f, 250f, y + 18f)
+            y += 44f
+        }
+        closeRect = android.graphics.RectF(130f, y - 18f, 230f, y + 18f)
+        Icons.draw(c, "close", Draw.C, y, 22f, Draw.DIM)
+        c.restore()
+        // scroll hint
+        if (contentBottom() + 60f > Draw.S) {
+            val max = (contentBottom() + 60f - Draw.S).coerceAtLeast(1f)
+            Draw.arc(c, Draw.C, Draw.C, 174f, 60f, 60f, 3f, Draw.FAINT)
+            Draw.arc(c, Draw.C, Draw.C, 174f, 60f + 50f * (scroll / max), 10f, 3f, Draw.WHITE)
+        }
+    }
+
+    override fun onTap(x: Float, y: Float): Boolean {
+        val cy = y + scroll
+        for ((a, r) in actionRects) if (r.contains(x, cy)) {
+            val ok = NotifRepo.runAction(Rear.app, item, a, Rear.prefs.notifPrivacy)
+            ui.toast(if (ok) a.title else "Unlock the phone first")
+            if (ok) ui.closeOverlay(false)
+            return true
+        }
+        if (item.clearable && dismissRect.contains(x, cy)) {
+            NotifRepo.dismiss(item.key)
+            ui.closeOverlay(false)
+            return true
+        }
+        if (closeRect.contains(x, cy)) ui.closeOverlay(false)
+        return true
+    }
+
+    override fun claimDrag(x0: Float, y0: Float, dx: Float, dy: Float): Boolean {
+        scrollStart = scroll
+        return true
+    }
+
+    override fun onDrag(x: Float, y: Float, dx: Float, dy: Float) {
+        if (abs(dy) > abs(dx)) {
+            scroll = (scrollStart - dy).coerceIn(0f, (contentBottom() + 60f - Draw.S).coerceAtLeast(0f))
+            invalidate()
+        }
+    }
+
+    override fun onDragEnd(x: Float, y: Float, dx: Float, dy: Float, vx: Float, vy: Float) {
+        // a horizontal swipe closes the reader
+        if (abs(dx) > 100f && abs(dx) > abs(dy)) ui.closeOverlay(false)
     }
 }
 

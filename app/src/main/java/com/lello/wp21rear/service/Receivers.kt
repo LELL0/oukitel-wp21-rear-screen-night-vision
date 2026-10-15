@@ -73,7 +73,8 @@ class DebugReceiver : BroadcastReceiver() {
                     intent.hasExtra("int") -> e.putInt(key, intent.getIntExtra("int", 0))
                     else -> e.remove(key)
                 }
-                e.apply()
+                e.commit()
+                Prefs.normalize(Prefs(ctx).sp)
                 resultData = "ok"
             }
             "com.lello.wp21rear.TOUCH" -> {

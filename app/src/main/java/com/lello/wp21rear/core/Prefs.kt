@@ -158,6 +158,26 @@ class Prefs(ctx: Context) {
             return dp.getSharedPreferences(name, Context.MODE_PRIVATE)
         }
 
+        /** Keys stored as strings by the preference screens (list / text preferences). */
+        val STRING_KEYS = setOf(
+            "rotation", "touch_rotation", "max_fps", "wake_mode", "timeout", "night_start", "night_end", "home_return",
+            "pages", "world_zones", "weather_lat", "weather_lon", "cam_timer", "photo_interval", "steps_goal",
+        )
+
+        /** Repairs values written with the wrong type (e.g. ints from adb) so the settings screen cannot crash. */
+        fun normalize(sp: SharedPreferences) {
+            val e = sp.edit()
+            var changed = false
+            for ((k, v) in sp.all) {
+                if (k in STRING_KEYS && v != null && v !is String) { e.putString(k, v.toString()); changed = true }
+                if ((k == K_BRIGHTNESS || k == K_NIGHT_LEVEL || k == K_FACE) && v is String) {
+                    v.toIntOrNull()?.let { e.putInt(k, it) } ?: e.remove(k)
+                    changed = true
+                }
+            }
+            if (changed) e.commit()
+        }
+
         const val DEFAULT_PAGES = "watch,music,camera,tools,compass,level,stopwatch,timer,battery,steps,photos,-idle"
         val ALL_PAGES = listOf(
             "watch", "music", "camera", "tools", "compass", "level", "stopwatch", "timer",

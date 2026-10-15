@@ -31,10 +31,27 @@ abstract class Face(val name: String, val defColor: Int, val defAccent: Int) {
 
     companion object {
         val ALL: List<Face> by lazy {
-            listOf(DigitalFace(), AnalogFace(), MinimalFace(), BatteryRingFace(), WorldClockFace(), ComplicationsFace())
+            listOf(
+                DigitalFace(), AnalogFace(), MinimalFace(), BatteryRingFace(), WorldClockFace(), ComplicationsFace(),
+                BoldFace(), RingsFace(), SegmentFace(), WordClockFace(), BinaryFace(), NeonFace(), RadarFace(),
+                DualFace(), DayArcFace(), DotMatrixFace(),
+            )
         }
 
         fun dimmed(color: Int) = Draw.lerpColor(color, 0xFF000000.toInt(), 0.45f)
+
+        /** Renders face [i] (current colours, no photo) into a round 360x360 bitmap for the app. */
+        fun preview(i: Int, aod: Boolean = false): android.graphics.Bitmap {
+            val b = android.graphics.Bitmap.createBitmap(360, 360, android.graphics.Bitmap.Config.ARGB_8888)
+            val c = Canvas(b)
+            val clip = android.graphics.Path().apply { addCircle(Draw.C, Draw.C, Draw.C, android.graphics.Path.Direction.CW) }
+            c.clipPath(clip)
+            c.drawColor(0xFF000000.toInt())
+            val f = ALL[i]
+            val cal = Calendar.getInstance()
+            f.draw(c, cal, System.currentTimeMillis(), Rear.prefs.faceColor(i, f.defColor), Rear.prefs.faceAccent(i, f.defAccent), aod)
+            return b
+        }
     }
 }
 
@@ -145,7 +162,7 @@ class ComplicationsFace : Face("Complications", Draw.WHITE, Draw.ACCENT) {
         val wy = 238f
         Draw.textC(c, Weather.temp(Rear.prefs), 96f, wy - 8f, 24f, Draw.WHITE, Draw.REG)
         Draw.textC(c, Weather.describe(Weather.code).ifEmpty { "weather" }, 96f, wy + 18f, 12f, Draw.DIM, Draw.REG, 80f)
-        val st = Rear.steps.today(Rear.sensors.steps)
+        val st = if (Rear.running) Rear.steps.today(Rear.sensors.steps) else -1
         val goal = Rear.steps.goal
         Draw.ring(c, Draw.C, wy, 30f, 5f, Draw.FAINT)
         if (st > 0) Draw.arc(c, Draw.C, wy, 30f, 0f, 360f * (st.toFloat() / goal).coerceAtMost(1f), 5f, acc)

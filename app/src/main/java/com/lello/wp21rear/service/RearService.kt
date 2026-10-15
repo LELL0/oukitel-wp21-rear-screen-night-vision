@@ -108,6 +108,7 @@ class RearService : Service(), DaemonClient.Listener, RearUi.Host, NotifRepo.Lis
         val app = applicationContext
         Rear.app = app
         Rear.prefs = Prefs(app)
+        Prefs.normalize(Rear.prefs.sp)
         Rear.daemon = DaemonClient(app)
         Rear.panel = Panel(Rear.daemon, Rear.prefs)
         Rear.ui = RearUi(Rear.panel, Rear.prefs)

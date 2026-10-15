@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "wp21-rearscreen"
-include(":app", ":hidlstubs")
+include(":app", ":hidlstubs", ":nightvision")
