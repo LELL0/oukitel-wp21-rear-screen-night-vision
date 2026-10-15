@@ -89,6 +89,7 @@ class DaemonClient(ctx: Context) {
             return
         }
         proc = p
+        lastError = null
         val dout = DataOutputStream(BufferedOutputStream(p.outputStream, 1 shl 18))
         try {
             val cmd = "export CLASSPATH='$apk'\nexec app_process /system/bin ${RearDaemonName} 2>/dev/null\n"
@@ -103,7 +104,9 @@ class DaemonClient(ctx: Context) {
         try {
             readLoop(din, dout)
         } catch (_: EOFException) {
-            if (lastError == null) lastError = "daemon closed the pipe"
+            if (lastError == null) {
+                lastError = if (isUp) "daemon closed the pipe" else "root denied or daemon failed to start (check Magisk → Superuser)"
+            }
         } catch (e: Exception) {
             lastError = "daemon pipe: $e"
         } finally {

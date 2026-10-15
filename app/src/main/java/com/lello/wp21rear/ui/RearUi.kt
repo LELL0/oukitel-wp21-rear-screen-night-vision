@@ -196,9 +196,7 @@ class RearUi(private val panel: Panel, val prefs: Prefs) : Gestures.Sink {
 
     /** Renders one frame synchronously for the power-on sequence (panel not yet "active"). */
     fun renderFirstFrame(): Bitmap {
-        current()?.onShow()
         val (_, phys) = drawFrame(SystemClock.uptimeMillis())
-        current()?.onHide()
         return phys
     }
 
