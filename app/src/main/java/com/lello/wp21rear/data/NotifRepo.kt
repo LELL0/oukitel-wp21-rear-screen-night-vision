@@ -53,12 +53,16 @@ object NotifRepo {
         remove(key)
     }
 
-    fun runAction(item: Item, a: Action) {
+    /** Returns false when refused: actions are not run from the rear while the phone is locked and privacy is on. */
+    fun runAction(ctx: Context, item: Item, a: Action, privacy: Boolean): Boolean {
+        val locked = ctx.getSystemService(android.app.KeyguardManager::class.java).isKeyguardLocked
+        if (locked && privacy) return false
         try {
             a.intent.send()
         } catch (e: Exception) {
             RLog.w("notification action failed: $e")
         }
+        return true
     }
 
     fun replaceAll(ctx: Context, sbns: Array<StatusBarNotification>?) {

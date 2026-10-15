@@ -45,6 +45,7 @@ class DebugReceiver : BroadcastReceiver() {
             "com.lello.wp21rear.PANEL_OFF" -> Rear.service?.emergencyOff()
             "com.lello.wp21rear.GOTO" -> {
                 val id = intent.getStringExtra("page") ?: return
+                Rear.service?.wakePanel()
                 if (Rear.running) Rear.ui.post { Rear.ui.goTo(id) }
             }
             "com.lello.wp21rear.TOUCH" -> {
