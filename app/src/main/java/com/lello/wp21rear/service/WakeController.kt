@@ -40,7 +40,8 @@ class WakeController(private val ctx: Context) {
     private val aodAlarm = AlarmManager.OnAlarmListener { onAodTick() }
 
     private var faceDownSince = 0L
-    private var wasFaceDown = false
+    /** null until the first sensor reading after registering: only a real face-up → face-down turn wakes. */
+    private var wasFaceDown: Boolean? = null
 
     fun post(r: () -> Unit) = ui.post(r)
 
@@ -227,7 +228,7 @@ class WakeController(private val ctx: Context) {
     fun startOffSensors() {
         if (panel.state != Panel.State.OFF || !prefs.enabled) return
         if (prefs.flipToWake) {
-            wasFaceDown = Rear.sensors.faceDown()
+            wasFaceDown = null
             Rear.sensors.accelListeners.add(accelListener)
             // 5 Hz, batched up to 1 s: enough for "placed face down", cheap on the sensor hub
             Rear.sensors.acquire(Rear.sensors.accel, "flip", 200_000, 1_000_000)
@@ -249,7 +250,12 @@ class WakeController(private val ctx: Context) {
     private fun checkFlip() {
         val down = Rear.sensors.faceDown()
         val now = SystemClock.uptimeMillis()
-        if (down && !wasFaceDown) faceDownSince = now
+        val was = wasFaceDown
+        if (was == null) {
+            wasFaceDown = down
+            return
+        }
+        if (down && !was) faceDownSince = now
         if (down && faceDownSince > 0 && now - faceDownSince > 600 && panel.state == Panel.State.OFF) {
             faceDownSince = 0
             wake("flip")
