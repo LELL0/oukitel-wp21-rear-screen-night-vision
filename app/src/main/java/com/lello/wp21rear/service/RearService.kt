@@ -76,6 +76,7 @@ class RearService : Service(), DaemonClient.Listener, RearUi.Host, NotifRepo.Lis
     // double-tap on the dark panel
     private var offTapAt = 0L
     private var offDownAt = 0L
+    private var lastDarkTouchLog = -100_000L
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, i: Intent) {
@@ -301,6 +302,10 @@ class RearService : Service(), DaemonClient.Listener, RearUi.Host, NotifRepo.Lis
             return
         }
         // Panel dark: only a double-tap wakes it.
+        if (action == com.lello.wp21rear.daemon.Proto.TOUCH_DOWN && timeMs - lastDarkTouchLog > 10_000) {
+            lastDarkTouchLog = timeMs
+            RLog.i("touch while panel off at $x,$y")
+        }
         if (!Rear.prefs.doubleTapWake) return
         when (action) {
             com.lello.wp21rear.daemon.Proto.TOUCH_DOWN -> offDownAt = timeMs
