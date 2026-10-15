@@ -276,11 +276,11 @@ class BatteryPage(ui: RearUi) : Page(ui) {
         lines.add("Temperature" to "%.1f °C".format(Battery.tempC))
         lines.add("Voltage" to "%.2f V".format(Battery.voltage))
         lines.add("Health" to Battery.health)
-        var y = 170f
+        var y = 168f
         for ((k, v) in lines) {
-            Draw.textL(c, k, 70f, y, 16f, Draw.DIM)
-            Draw.textL(c, v, 190f, y, 16f, Draw.WHITE, Draw.MED, 110f)
-            y += 30f
+            Draw.textL(c, k, 84f, y, 15f, Draw.DIM)
+            Draw.textL(c, v, 186f, y, 15f, Draw.WHITE, Draw.MED, 100f)
+            y += 27f
         }
     }
 

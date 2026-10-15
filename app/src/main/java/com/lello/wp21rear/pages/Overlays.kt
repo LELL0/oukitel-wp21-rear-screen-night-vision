@@ -34,7 +34,7 @@ class QuickTogglesOverlay(ui: RearUi) : Overlay(ui) {
 
     override fun draw(c: Canvas, now: Long) {
         c.drawColor(0xF0101113.toInt())
-        val time = android.text.format.DateFormat.getTimeFormat(Rear.app).format(java.util.Date())
+        val time = java.text.SimpleDateFormat(if (Rear.prefs.use24h) "HH:mm" else "h:mm a", java.util.Locale.getDefault()).format(java.util.Date())
         Draw.textC(c, time, Draw.C, 52f, 22f, Draw.WHITE, Draw.MED)
         for ((i, id) in ids.withIndex()) {
             val (x, y) = pos(i)
@@ -58,6 +58,8 @@ class QuickTogglesOverlay(ui: RearUi) : Overlay(ui) {
         for ((i, id) in ids.withIndex()) {
             val (px, py) = pos(i)
             if (hypot(x - px, y - py) < 32f) {
+                // like the system quick settings, mobile data needs an unlocked phone
+                if (id == "data" && locked()) { ui.toast("Unlock the phone first"); return true }
                 Rear.toggles.toggle(id)
                 ui.postDelayed(400, Runnable { invalidate() })
                 ui.postDelayed(1500, Runnable { invalidate() })
@@ -199,8 +201,8 @@ class NotificationsOverlay(ui: RearUi) : Overlay(ui), NotifRepo.Listener {
     override fun onTap(x: Float, y: Float): Boolean {
         for ((pair, r) in actionRects) {
             if (r.contains(x, y + scroll)) {
-                NotifRepo.runAction(pair.first, pair.second)
-                ui.toast(pair.second.title)
+                val ok = NotifRepo.runAction(Rear.app, pair.first, pair.second, Rear.prefs.notifPrivacy)
+                ui.toast(if (ok) pair.second.title else "Unlock the phone first")
                 return true
             }
         }
@@ -289,8 +291,11 @@ class NotifPopup(ui: RearUi, private val item: NotifRepo.Item) : Overlay(ui) {
 
     override fun claimDrag(x0: Float, y0: Float, dx: Float, dy: Float) = true
     override fun onDragEnd(x: Float, y: Float, dx: Float, dy: Float, vx: Float, vy: Float) {
-        if (abs(dx) > 80f && item.clearable) NotifRepo.dismiss(item.key)
-        ui.closeOverlay(false)
+        when {
+            dy < -60f && abs(dy) > abs(dx) -> ui.showOverlay(NotificationsOverlay(ui))
+            abs(dx) > 80f && item.clearable -> { NotifRepo.dismiss(item.key); ui.closeOverlay(false) }
+            else -> ui.closeOverlay(false)
+        }
     }
 }
 

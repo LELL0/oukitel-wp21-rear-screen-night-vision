@@ -322,12 +322,16 @@ class RearService : Service(), DaemonClient.Listener, RearUi.Host, NotifRepo.Lis
     // ------------------------------------------------------------------ notifications & media
 
     override fun onNotifPosted(item: NotifRepo.Item) {
+        RLog.i("notification posted: ${item.pkg}")
         val p = Rear.prefs
         if (!p.notifWake || item.pkg in p.notifMutedApps || item.isCall) return
         Rear.ui.post {
             val ui = Rear.ui
             if (!wake.isOn || wake.aod) {
-                if (!wake.proximityAllows()) return@post
+                if (!wake.proximityAllows()) {
+                    RLog.i("notification ${item.pkg}: not waking (front covered)")
+                    return@post
+                }
                 wake.wake("notification ${item.pkg}", 8000)
             } else if (ui.overlay?.id == "call" || ui.current()?.id == "camera") {
                 return@post
