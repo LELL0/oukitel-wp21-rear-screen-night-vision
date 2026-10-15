@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="General">
+        <SwitchPreferenceCompat app:key="autostart" app:defaultValue="true" app:title="Start at boot" />
+        <SeekBarPreference app:key="brightness" app:defaultValue="4" app:min="0" android:max="7"
+            app:showSeekBarValue="true" app:title="Rear brightness"/>
+        <SwitchPreferenceCompat app:key="auto_brightness" app:defaultValue="false" app:title="Automatic brightness"
+            app:summary="Uses the light sensor while the panel is on" />
+        <SwitchPreferenceCompat app:key="use_24h" app:defaultValue="true" app:title="24-hour clock" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Waking">
+        <ListPreference app:key="wake_mode" app:defaultValue="manual" app:title="Mode"
+            app:entries="@array/wake_mode_names" app:entryValues="@array/wake_mode_values" app:useSimpleSummaryProvider="true" />
+        <ListPreference app:key="timeout" app:defaultValue="15" app:title="Turn off after"
+            app:entries="@array/timeout_names" app:entryValues="@array/timeout_values" app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat app:key="aod" app:defaultValue="false" app:title="Always-on clock when idle"
+            app:summary="Dim clock instead of turning off (updates once a minute)" />
+        <ListPreference app:key="home_return" app:defaultValue="30" app:title="Back to the watch face after"
+            app:entries="@array/home_names" app:entryValues="@array/home_values" app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat app:key="double_tap_wake" app:defaultValue="true" app:title="Double-tap to wake" />
+        <SwitchPreferenceCompat app:key="double_tap_sleep" app:defaultValue="true" app:title="Double-tap the watch face to sleep" />
+        <SwitchPreferenceCompat app:key="flip_wake" app:defaultValue="true" app:title="Flip to wake"
+            app:summary="Turn on when the phone is laid face down" />
+        <SwitchPreferenceCompat app:key="prox_check" app:defaultValue="true" app:title="Pocket check"
+            app:summary="Do not wake for notifications while the front is covered" />
+        <SwitchPreferenceCompat app:key="night_dim" app:defaultValue="false" app:title="Night dimming" />
+        <EditTextPreference app:key="night_start" app:defaultValue="23:00" app:title="Night starts (HH:MM)" app:useSimpleSummaryProvider="true" />
+        <EditTextPreference app:key="night_end" app:defaultValue="07:00" app:title="Night ends (HH:MM)" app:useSimpleSummaryProvider="true" />
+        <SeekBarPreference app:key="night_level" app:defaultValue="1" app:min="0" android:max="7"
+            app:showSeekBarValue="true" app:title="Maximum brightness at night"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Notifications">
+        <SwitchPreferenceCompat app:key="notif_wake" app:defaultValue="true" app:title="Show new notifications on the rear" />
+        <SwitchPreferenceCompat app:key="notif_privacy" app:defaultValue="true" app:title="Hide content while locked" />
+        <MultiSelectListPreference app:key="notif_muted" app:title="Apps that never wake the panel" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Music and calls">
+        <SwitchPreferenceCompat app:key="music_auto" app:defaultValue="true" app:title="Show the music page when playback starts" />
+        <SwitchPreferenceCompat app:key="call_screen" app:defaultValue="true" app:title="Call screen on the rear" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Camera">
+        <ListPreference app:key="cam_timer" app:defaultValue="0" app:title="Default self-timer"
+            app:entries="@array/cam_timer_names" app:entryValues="@array/cam_timer_values" app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat app:key="cam_mirror" app:defaultValue="true" app:title="Mirror the viewfinder" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Photos and idle screen">
+        <Preference app:key="photo_folder_pick" app:title="Slideshow folder" />
+        <ListPreference app:key="photo_interval" app:defaultValue="10" app:title="Slide interval"
+            app:entries="@array/photo_interval_names" app:entryValues="@array/photo_interval_values" app:useSimpleSummaryProvider="true" />
+        <Preference app:key="idle_media_pick" app:title="Idle screen GIF / video" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Watch-face data">
+        <EditTextPreference app:key="world_zones" app:defaultValue="Europe/London,America/New_York,Asia/Tokyo"
+            app:title="World clock zones (comma separated)" app:useSimpleSummaryProvider="true" />
+        <EditTextPreference app:key="weather_lat" app:title="Weather latitude (empty = last location)" app:useSimpleSummaryProvider="true" />
+        <EditTextPreference app:key="weather_lon" app:title="Weather longitude" app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat app:key="weather_f" app:defaultValue="false" app:title="Fahrenheit" />
+        <EditTextPreference app:key="steps_goal" app:defaultValue="8000" app:title="Daily step goal" app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="Advanced">
+        <ListPreference app:key="max_fps" app:defaultValue="15" app:title="Animation frame rate"
+            app:entries="@array/fps_names" app:entryValues="@array/fps_values" app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat app:key="grab_touch" app:defaultValue="true" app:title="Block rear touches from the main screen"
+            app:summary="Grabs the rear touch controller so it does not cause ghost touches" />
+        <SwitchPreferenceCompat app:key="btn_enabled" app:defaultValue="true" app:title="Side button actions" />
+    </PreferenceCategory>
+</PreferenceScreen>

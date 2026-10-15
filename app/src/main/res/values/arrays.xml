@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="wake_mode_names">
+        <item>Manual (button, double-tap, flip, notifications)</item>
+        <item>Follow the main screen</item>
+        <item>Always on</item>
+    </string-array>
+    <string-array name="wake_mode_values">
+        <item>manual</item>
+        <item>follow</item>
+        <item>always</item>
+    </string-array>
+    <string-array name="timeout_names">
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+        <item>15 seconds</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+        <item>2 minutes</item>
+        <item>5 minutes</item>
+    </string-array>
+    <string-array name="timeout_values">
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>120</item>
+        <item>300</item>
+    </string-array>
+    <string-array name="home_names">
+        <item>Never</item>
+        <item>15 seconds</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+        <item>5 minutes</item>
+    </string-array>
+    <string-array name="home_values">
+        <item>0</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>300</item>
+    </string-array>
+    <string-array name="rotation_names">
+        <item>0°</item>
+        <item>90°</item>
+        <item>180°</item>
+        <item>270°</item>
+    </string-array>
+    <string-array name="rotation_values">
+        <item>0</item>
+        <item>90</item>
+        <item>180</item>
+        <item>270</item>
+    </string-array>
+    <string-array name="cam_timer_names">
+        <item>Off</item>
+        <item>3 seconds</item>
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+    </string-array>
+    <string-array name="cam_timer_values">
+        <item>0</item>
+        <item>3</item>
+        <item>5</item>
+        <item>10</item>
+    </string-array>
+    <string-array name="photo_interval_names">
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+    </string-array>
+    <string-array name="photo_interval_values">
+        <item>5</item>
+        <item>10</item>
+        <item>30</item>
+        <item>60</item>
+    </string-array>
+    <string-array name="fps_names">
+        <item>15 fps (panel maximum)</item>
+        <item>10 fps</item>
+        <item>5 fps (saves battery)</item>
+    </string-array>
+    <string-array name="fps_values">
+        <item>15</item>
+        <item>10</item>
+        <item>5</item>
+    </string-array>
+</resources>
